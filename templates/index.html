@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>GitHub Webhook Events</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 2em; }
+        h1 { color: #333; }
+        ul { list-style-type: none; padding: 0; }
+        li { background: #f4f4f4; margin: 0.5em 0; padding: 0.75em; border-radius: 4px; }
+        button { margin-bottom: 1em; }
+    </style>
+    <script>
+        async function fetchEvents() {
+            const response = await fetch('/events');
+            const data = await response.json();
+            const list = document.getElementById('event-list');
+            list.innerHTML = '';
+            if (data.length === 0) {
+                const item = document.createElement('li');
+                item.textContent = 'No events yet.';
+                list.appendChild(item);
+            } else {
+                data.forEach(event => {
+                    const date = new Date(event.timestamp);
+                    let display;
+                    if (event.action === "PUSH") {
+                        display = `${event.author} pushed to ${event.to_branch} on ${date.toLocaleString()}`;
+                    } else if (event.action === "PULL_REQUEST") {
+                        display = `${event.author} submitted a pull request from ${event.from_branch} to ${event.to_branch} on ${date.toLocaleString()}`;
+                    } else if (event.action === "MERGE") {
+                        display = `${event.author} merged branch ${event.from_branch} to ${event.to_branch} on ${date.toLocaleString()}`;
+                    } else {
+                        display = JSON.stringify(event);
+                    }
+                    const item = document.createElement('li');
+                    item.textContent = display;
+                    list.appendChild(item);
+                });
+            }
+        }
+        setInterval(fetchEvents, 15000); // Refresh every 15 seconds
+        window.onload = fetchEvents;
+    </script>
+</head>
+<body>
+    <h1>GitHub Webhook Events</h1>
+    <button onclick="fetchEvents()">Refresh Now</button>
+    <ul id="event-list"></ul>
+</body>
+</html>
